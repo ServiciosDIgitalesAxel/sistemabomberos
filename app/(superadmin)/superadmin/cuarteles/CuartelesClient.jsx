@@ -17,6 +17,7 @@ export default function CuartelesClient({ cuarteles: inicial, session }) {
   const [adminJerarquia, setAdminJerarquia] = useState('')
   const [adminUsername, setAdminUsername] = useState('')
   const [adminPassword, setAdminPassword] = useState('')
+  const [logoUrl, setLogoUrl] = useState('')
 
   async function handleCrear(e) {
     e.preventDefault()
@@ -53,6 +54,7 @@ export default function CuartelesClient({ cuarteles: inicial, session }) {
       setAdminJerarquia('')
       setAdminUsername('')
       setAdminPassword('')
+      setLogoUrl('')
       setCuarteles([data.cuartel, ...cuarteles])
 
     } catch {
@@ -132,7 +134,24 @@ export default function CuartelesClient({ cuarteles: inicial, session }) {
                            focus:outline-none focus:border-white/30"
               />
             </div>
-
+            <div className="flex flex-col gap-1">
+  <label className="text-white/60 text-xs font-bold uppercase tracking-wider">
+    URL del Logo (opcional)
+  </label>
+  <input
+    type="url"
+    value={logoUrl}
+    onChange={e => setLogoUrl(e.target.value)}
+    placeholder="https://... (link a imagen)"
+    className="bg-white/8 border border-white/10 rounded-lg px-3 py-2.5
+               text-white placeholder-white/30 text-sm
+               focus:outline-none focus:border-white/30"
+  />
+  {logoUrl && (
+    <img src={logoUrl} alt="Preview"
+         className="w-16 h-16 rounded-xl object-contain bg-white/10 mt-1" />
+  )}
+</div>
             {/* Color */}
             <div className="flex flex-col gap-1">
               <label className="text-white/60 text-xs font-bold uppercase tracking-wider">
@@ -262,33 +281,33 @@ export default function CuartelesClient({ cuarteles: inicial, session }) {
               No hay cuarteles creados todavía
             </div>
           )}
-
-          {cuarteles.map(c => (
-            <div
-              key={c.id}
-              className="bg-[#0a1830] border border-white/10 rounded-xl p-4
-                         flex items-center gap-3"
-            >
-              <div
-                className="w-3 h-10 rounded-full flex-shrink-0"
-                style={{ background: c.color_primario }}
-              />
-              <div className="flex-1 min-w-0">
-                <div className="text-white font-semibold text-sm">{c.nombre}</div>
-                <div className="text-white/40 text-xs mt-0.5">
-                  {c.activa ? '✅ Activo' : '⛔ Inactivo'} ·{' '}
-                  {new Date(c.created_at).toLocaleDateString('es-AR')}
-                </div>
-              </div>
-              <button
-                onClick={() => router.push(`/superadmin/cuarteles/${c.id}`)}
-                className="bg-white/8 hover:bg-white/15 border border-white/10
-                           text-white/70 text-xs font-semibold px-3 py-2 rounded-lg"
-              >
-                Ver →
-              </button>
-            </div>
-          ))}
+{cuarteles.map(c => (
+  <div key={c.id}
+       className="bg-[#0a1830] border border-white/10 rounded-xl p-4
+                  flex items-center gap-3">
+    {c.logo_url ? (
+      <img src={c.logo_url} alt={c.nombre}
+           className="w-10 h-10 rounded-lg object-contain bg-white/10 flex-shrink-0" />
+    ) : (
+      <div className="w-10 h-10 rounded-lg flex-shrink-0"
+           style={{ background: c.color_primario }} />
+    )}
+    <div className="flex-1 min-w-0">
+      <div className="text-white font-semibold text-sm">{c.nombre}</div>
+      <div className="text-white/40 text-xs mt-0.5">
+        {c.activa ? '✅ Activo' : '⛔ Inactivo'} ·{' '}
+        {new Date(c.created_at).toLocaleDateString('es-AR')}
+      </div>
+    </div>
+    <button
+      onClick={() => router.push(`/superadmin/cuarteles/${c.id}`)}
+      className="bg-white/8 hover:bg-white/15 border border-white/10
+                 text-white/70 text-xs font-semibold px-3 py-2 rounded-lg"
+    >
+      Ver →
+    </button>
+  </div>
+))}
         </div>
 
       </div>

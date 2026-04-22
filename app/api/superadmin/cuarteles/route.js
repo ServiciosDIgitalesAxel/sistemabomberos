@@ -65,3 +65,12 @@ export async function POST(request) {
     return NextResponse.json({ error: 'Error del servidor: ' + err.message }, { status: 500 })
   }
 }
+const { data: org, error: orgError } = await supabase
+  .from('organizations')
+  .insert({
+    nombre,
+    color_primario: color || '#b01e1e',
+    logo_url: logoUrl || null
+  })
+  .select()
+  .single()

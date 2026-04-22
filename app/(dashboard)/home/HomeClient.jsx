@@ -81,7 +81,32 @@ export default function HomeClient({ session, actividades, guardias }) {
             </div>
           </div>
         )}
-
+{/* SUPERADMIN */}
+{session.rol === 'superadmin' && (
+  <div className="flex flex-col gap-4">
+    <SectionTitle title="Panel Super Administrador" />
+    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+      <ActionButton
+        icon="🏛️" title="Gestionar Cuarteles"
+        sub="Crear y administrar organizaciones"
+        color="blue"
+        onClick={() => router.push('/superadmin/cuarteles')}
+      />
+      <ActionButton
+        icon="👥" title="Todos los Usuarios"
+        sub="Ver usuarios de todos los cuarteles"
+        color="red"
+        onClick={() => router.push('/superadmin/usuarios')}
+      />
+      <ActionButton
+        icon="📊" title="Estadísticas Globales"
+        sub="Resumen de toda la plataforma"
+        color="gold"
+        onClick={() => router.push('/superadmin/estadisticas')}
+      />
+    </div>
+  </div>
+)}
         {/* Actividades */}
         {actividades.length > 0 ? (
           <div className="flex flex-col gap-3">
