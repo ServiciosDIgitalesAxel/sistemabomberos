@@ -9,7 +9,7 @@ const ROLE_ROUTES = {
   bombero:    ['/home'],
 }
 
-export function middleware(request) {
+export function proxy(request) { // 👈 CAMBIO ACÁ
   const { pathname } = request.nextUrl
   const sessionCookie = request.cookies.get('bv_session')
 
