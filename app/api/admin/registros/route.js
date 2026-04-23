@@ -23,7 +23,6 @@ export async function GET(request) {
   const hasta       = searchParams.get('hasta')
   const actividadId = searchParams.get('actividadId')
 
-  let query = supabaseQuery(session, desde, hasta, actividadId)
   const supabase = createAdminClient()
 
   let q = supabase
@@ -31,7 +30,7 @@ export async function GET(request) {
     .select(`
       id, estado, observaciones, fecha, hora_ingreso, hora_egreso, tiempo_total, created_at,
       user:users!attendance_records_user_id_fkey(id, nombre, jerarquia),
-      activity_types(id, nombre, icono, tipo_base),
+      activity_types(id, nombre, icono, tipo_base, estados),
       guards(id, nombre)
     `)
     .eq('org_id', session.org_id)
@@ -43,8 +42,11 @@ export async function GET(request) {
   if (actividadId) q = q.eq('activity_type_id', actividadId)
 
   const { data, error } = await q
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
-  return NextResponse.json({ registros: data })
+  if (error) {
+    console.error('Error registros:', error)
+    return NextResponse.json({ error: error.message }, { status: 500 })
+  }
+  return NextResponse.json({ registros: data || [] })
 }
 
 export async function PATCH(request) {
@@ -58,13 +60,12 @@ export async function PATCH(request) {
   if (!id) return NextResponse.json({ error: 'ID requerido' }, { status: 400 })
 
   const supabase = createAdminClient()
-
   const updates = {}
   if (estado        !== undefined) updates.estado        = estado
   if (observaciones !== undefined) updates.observaciones = observaciones
   if (fecha         !== undefined) updates.fecha         = fecha
-  if (hora_ingreso  !== undefined) updates.hora_ingreso  = hora_ingreso
-  if (hora_egreso   !== undefined) updates.hora_egreso   = hora_egreso
+  if (hora_ingreso  !== undefined) updates.hora_ingreso  = hora_ingreso || null
+  if (hora_egreso   !== undefined) updates.hora_egreso   = hora_egreso  || null
 
   const { error } = await supabase
     .from('attendance_records')
