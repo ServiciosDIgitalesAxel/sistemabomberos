@@ -1,0 +1,16 @@
+[33mbc8c7f0[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m)[m Fix
+[33m39a6020[m Fix
+[33m7f8b9c3[m FIXE
+[33md400e28[m Fix
+[33mdb77194[m Axel
+[33md45bb6d[m Prueba mejorada
+[33m5cdb8e1[m fix: add globals.css
+[33m4e82d10[m fix: import globals.css
+[33m59b52c5[m Pruebo fix styles
+[33m1acdf42[m fix: tailwind v4 import
+[33md92f43d[m fix: add globals.css
+[33mf6d5b56[m fix: add placeholder pages
+[33mc02c902[m fix: estadisticas page export
+[33m6e2549f[m fix: configuracion page export
+[33mad40c06[m fix: rename middleware to proxy
+[33m82697ed[m clean start
