@@ -1,7 +1,7 @@
-import { createClient } from '@/lib/supabaseClient'
+import { createAdminClient } from '@/lib/supabase/admin'
 
 export default async function CuartelPage({ params }) {
-  const supabase = createClient()
+  const supabase = createAdminClient()
   const { id } = params
 
   const { data, error } = await supabase
@@ -9,6 +9,10 @@ export default async function CuartelPage({ params }) {
     .select('*')
     .eq('id', id)
     .single()
+
+  if (error) {
+    console.error('ERROR:', error)
+  }
 
   if (!data) {
     return <div>No existe el cuartel</div>
