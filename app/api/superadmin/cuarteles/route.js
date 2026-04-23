@@ -14,58 +14,86 @@ export async function POST(request) {
     }
 
     const body = await request.json()
-    console.log('Body recibido:', body)
 
-    const { nombre, color, adminNombre, adminJerarquia, adminUsername, adminPassword } = body
-.insert({
-  nombre,
-  color_primario: color || '#b01e1e',
-  logo_url: logoUrl || null
-})
-    console.log('Campos:', { nombre, adminNombre, adminUsername, adminPassword: adminPassword ? '***' : 'VACÍO' })
+    const nombreCuartel    = body.nombre
+    const colorCuartel     = body.color
+    const logoCuartel      = body.logoUrl
+    const nombreAdmin      = body.adminNombre
+    const jerarquiaAdmin   = body.adminJerarquia
+    const usernameAdmin    = body.adminUsername
+    const passwordAdmin    = body.adminPassword
 
-    if (!nombre || !adminNombre || !adminUsername || !adminPassword) {
-      return NextResponse.json({ 
-        error: `Faltan campos: ${!nombre?'nombre ':''} ${!adminNombre?'adminNombre ':''} ${!adminUsername?'adminUsername ':''} ${!adminPassword?'adminPassword':''}` 
-      }, { status: 400 })
+    if (!nombreCuartel || !nombreAdmin || !usernameAdmin || !passwordAdmin) {
+      return NextResponse.json({ error: 'Faltan campos obligatorios' }, { status: 400 })
     }
 
     const supabase = createAdminClient()
 
-    const { data: org, error: orgError } = await supabase
+    const { data: orgCreada, error: orgError } = await supabase
       .from('organizations')
-      .insert({ nombre, color_primario: color || '#b01e1e' })
+      .insert({
+        nombre:         nombreCuartel,
+        color_primario: colorCuartel || '#b01e1e',
+        logo_url:       logoCuartel  || null
+      })
       .select()
       .single()
 
     if (orgError) throw orgError
 
-    const { data: hashData } = await supabase
-      .rpc('hash_password', { password: adminPassword })
+    const { data: passwordHash, error: hashError } = await supabase
+      .rpc('hash_password', { password: passwordAdmin })
+
+    if (hashError) throw hashError
 
     const { error: userError } = await supabase
       .from('users')
       .insert({
-        org_id: org.id,
-        nombre: adminNombre,
-        jerarquia: adminJerarquia || '',
-        username: adminUsername.trim().toLowerCase(),
-        password_hash: hashData,
-        rol: 'admin'
+        org_id:        orgCreada.id,
+        nombre:        nombreAdmin,
+        jerarquia:     jerarquiaAdmin || '',
+        username:      usernameAdmin.trim().toLowerCase(),
+        password_hash: passwordHash,
+        rol:           'admin'
       })
 
     if (userError) {
-      await supabase.from('organizations').delete().eq('id', org.id)
+      await supabase.from('organizations').delete().eq('id', orgCreada.id)
       if (userError.code === '23505') {
         return NextResponse.json({ error: 'Ese nombre de usuario ya existe' }, { status: 400 })
       }
       throw userError
     }
 
-    return NextResponse.json({ success: true, cuartel: org })
+    return NextResponse.json({ success: true, cuartel: orgCreada })
 
   } catch (err) {
-    console.error('Error:', err)
+    console.error('Error crear cuartel:', err)
     return NextResponse.json({ error: 'Error del servidor: ' + err.message }, { status: 500 })
+  }
+}
+
+export async function GET() {
+  try {
+    const cookieStore = await cookies()
+    const sessionCookie = cookieStore.get('bv_session')
+    if (!sessionCookie) return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
+
+    const session = JSON.parse(Buffer.from(sessionCookie.value, 'base64').toString())
+    if (session.rol !== 'superadmin') {
+      return NextResponse.json({ error: 'Sin permisos' }, { status: 403 })
+    }
+
+    const supabase = createAdminClient()
+    const { data, error } = await supabase
+      .from('organizations')
+      .select('*')
+      .order('created_at', { ascending: false })
+
+    if (error) throw error
+    return NextResponse.json({ cuarteles: data })
+
+  } catch (err) {
+    return NextResponse.json({ error: err.message }, { status: 500 })
   }
 }

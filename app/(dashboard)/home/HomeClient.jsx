@@ -14,8 +14,10 @@ export default function HomeClient({ session, actividades, guardias }) {
     router.refresh()
   }
 
-  const esAdmin = ['admin', 'superadmin'].includes(session.rol)
-  const esJefe  = session.rol === 'jefe'
+  const esAdmin      = session.rol === 'admin'
+  const esSuperAdmin = session.rol === 'superadmin'
+  const esJefe       = session.rol === 'jefe'
+  const esBombero    = session.rol === 'bombero'
 
   return (
     <div className="min-h-screen bg-[#020810] flex flex-col">
@@ -45,89 +47,107 @@ export default function HomeClient({ session, actividades, guardias }) {
         <div className="text-white/50 text-sm mt-0.5">
           {session.jerarquia && `${session.jerarquia} · `}
           {getRolLabel(session.rol)}
-          {guardias.length > 0 && ` · ${guardias.map(g => g.nombre).join(', ')}`}
+          {guardias?.length > 0 && ` · ${guardias.map(g => g.nombre).join(', ')}`}
         </div>
       </div>
 
       <div className="flex-1 px-5 py-6 flex flex-col gap-5">
 
-        {/* Panel admin */}
-        {(esAdmin || esJefe) && (
-          <div className="flex flex-col gap-3">
-            <SectionTitle title={esAdmin ? 'Panel Administrador' : 'Panel Jefe de Guardia'} />
-            <div className="grid grid-cols-2 gap-3">
-              {esAdmin && (
-                <>
-                  <ActionButton icon="👥" title="Usuarios" color="blue"
-                    onClick={() => router.push('/admin/usuarios')} />
-                  <ActionButton icon="🚒" title="Guardias" color="red"
-                    onClick={() => router.push('/admin/guardias')} />
-                  <ActionButton icon="📋" title="Actividades" color="gold"
-                    onClick={() => router.push('/admin/actividades')} />
-                  <ActionButton icon="📊" title="Estadísticas" color="green"
-                    onClick={() => router.push('/admin/estadisticas')} />
-                    <ActionButton icon="📝" title="Reg. Masivo" color="blue"
-  onClick={() => router.push('/admin/masivo')} />
-                </>
-              )}
-              {esJefe && (
-                <>
-                  <ActionButton icon="📊" title="Mi Guardia" color="blue"
-                    onClick={() => router.push('/admin/estadisticas')} />
-                  <ActionButton icon="📋" title="Reg. Masivo" color="gold"
-                    onClick={() => router.push('/admin/masivo')} />
-                </>
-              )}
+        {/* SUPERADMIN */}
+        {esSuperAdmin && (
+          <div className="flex flex-col gap-4">
+            <SectionTitle title="Panel Super Administrador" />
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <ActionButton
+                icon="🏛️" title="Gestionar Cuarteles"
+                sub="Crear y administrar organizaciones"
+                color="blue"
+                onClick={() => router.push('/superadmin/cuarteles')}
+              />
+              <ActionButton
+                icon="👥" title="Todos los Usuarios"
+                sub="Ver usuarios de todos los cuarteles"
+                color="red"
+                onClick={() => router.push('/superadmin/usuarios')}
+              />
+              <ActionButton
+                icon="📊" title="Estadísticas Globales"
+                sub="Resumen de toda la plataforma"
+                color="gold"
+                onClick={() => router.push('/superadmin/estadisticas')}
+              />
             </div>
           </div>
         )}
-{/* SUPERADMIN */}
-{session.rol === 'superadmin' && (
-  <div className="flex flex-col gap-4">
-    <SectionTitle title="Panel Super Administrador" />
-    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-      <ActionButton
-        icon="🏛️" title="Gestionar Cuarteles"
-        sub="Crear y administrar organizaciones"
-        color="blue"
-        onClick={() => router.push('/superadmin/cuarteles')}
-      />
-      <ActionButton
-        icon="👥" title="Todos los Usuarios"
-        sub="Ver usuarios de todos los cuarteles"
-        color="red"
-        onClick={() => router.push('/superadmin/usuarios')}
-      />
-      <ActionButton
-        icon="📊" title="Estadísticas Globales"
-        sub="Resumen de toda la plataforma"
-        color="gold"
-        onClick={() => router.push('/superadmin/estadisticas')}
-      />
-    </div>
-  </div>
-)}
-        {/* Actividades */}
-        {actividades.length > 0 ? (
-          <div className="flex flex-col gap-3">
-            <SectionTitle title="Registrar Asistencia" />
-            {actividades.map(act => (
-              <ActivityButton
-                key={act.id}
-                actividad={act}
-                onClick={() => router.push(
-                  `/asistencia/${act.id}?tipo=${act.tipo_base}&nombre=${encodeURIComponent(act.nombre)}`
-                )}
-              />
-            ))}
-          </div>
-        ) : (
-          !esAdmin && (
-            <div className="bg-white/4 border border-white/8 rounded-xl p-8
-                            text-center text-white/40 text-sm">
-              No hay actividades configuradas todavía
+
+        {/* ADMIN */}
+        {esAdmin && (
+          <div className="flex flex-col gap-4">
+            <SectionTitle title="Panel Administrador" />
+            <div className="grid grid-cols-2 gap-3">
+              <ActionButton icon="👥" title="Usuarios" sub="Gestionar personal"
+                color="blue" onClick={() => router.push('/admin/usuarios')} />
+              <ActionButton icon="🚒" title="Guardias" sub="Configurar guardias"
+                color="red" onClick={() => router.push('/admin/guardias')} />
+              <ActionButton icon="📋" title="Actividades" sub="Tipos de registro"
+                color="gold" onClick={() => router.push('/admin/actividades')} />
+              <ActionButton icon="📊" title="Estadísticas" sub="Ver asistencias"
+                color="green" onClick={() => router.push('/admin/estadisticas')} />
+              <ActionButton icon="📝" title="Reg. Masivo" sub="Registrar grupo"
+                color="blue" onClick={() => router.push('/admin/masivo')} />
+                <ActionButton icon="📁" title="Registros" sub="Ver, editar y exportar"
+  color="green" onClick={() => router.push('/admin/registros')} />
             </div>
-          )
+            {actividades?.length > 0 && (
+              <>
+                <SectionTitle title="Mi Asistencia" />
+                {actividades.map(act => (
+                  <ActivityButton key={act.id} actividad={act}
+                    onClick={() => router.push(`/asistencia/${act.id}`)} />
+                ))}
+              </>
+            )}
+          </div>
+        )}
+
+        {/* JEFE */}
+        {esJefe && (
+          <div className="flex flex-col gap-4">
+            <SectionTitle title="Panel Jefe de Guardia" />
+            <div className="grid grid-cols-2 gap-3">
+              <ActionButton icon="📊" title="Mi Guardia" sub="Ver estadísticas"
+                color="blue" onClick={() => router.push('/admin/estadisticas')} />
+              <ActionButton icon="📝" title="Reg. Masivo" sub="Registrar guardia"
+                color="gold" onClick={() => router.push('/admin/masivo')} />
+            </div>
+            {actividades?.length > 0 && (
+              <>
+                <SectionTitle title="Mi Asistencia" />
+                {actividades.map(act => (
+                  <ActivityButton key={act.id} actividad={act}
+                    onClick={() => router.push(`/asistencia/${act.id}`)} />
+                ))}
+              </>
+            )}
+          </div>
+        )}
+
+        {/* BOMBERO */}
+        {esBombero && (
+          <div className="flex flex-col gap-4">
+            <SectionTitle title="Registrar Asistencia" />
+            {actividades?.length > 0 ? (
+              actividades.map(act => (
+                <ActivityButton key={act.id} actividad={act}
+                  onClick={() => router.push(`/asistencia/${act.id}`)} />
+              ))
+            ) : (
+              <div className="bg-white/4 border border-white/8 rounded-xl p-8
+                              text-center text-white/40 text-sm">
+                No hay actividades configuradas todavía
+              </div>
+            )}
+          </div>
         )}
 
       </div>
@@ -164,7 +184,7 @@ function ActivityButton({ actividad, onClick }) {
         </div>
         <div className="text-xs mt-0.5 text-white/40">
           {getTipoLabel(actividad.tipo_base)} ·{' '}
-          {(actividad.estados || []).slice(0, 3).join(', ')}
+          {(actividad.estados || []).slice(0,3).join(', ')}
           {(actividad.estados || []).length > 3 && '...'}
         </div>
       </div>
@@ -173,7 +193,7 @@ function ActivityButton({ actividad, onClick }) {
   )
 }
 
-function ActionButton({ icon, title, color, onClick }) {
+function ActionButton({ icon, title, sub, color, onClick }) {
   const colors = {
     blue:  'bg-[#0e2245] border-[#1a3d7a] text-[#7aa2de]',
     red:   'bg-[#2a0808] border-[#5c1010] text-[#f07070]',
@@ -189,6 +209,7 @@ function ActionButton({ icon, title, color, onClick }) {
     >
       <span className="text-2xl">{icon}</span>
       <span className="text-xs font-bold uppercase tracking-wide">{title}</span>
+      {sub && <span className="text-xs opacity-60 text-center">{sub}</span>}
     </button>
   )
 }
