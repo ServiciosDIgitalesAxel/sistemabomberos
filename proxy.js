@@ -2,11 +2,10 @@ import { NextResponse } from 'next/server'
 
 const PUBLIC_ROUTES = ['/login']
 
-export function middleware(request) {
+export function proxy(request) {
   const { pathname } = request.nextUrl
   const sessionCookie = request.cookies.get('bv_session')
 
-  // Rutas públicas
   if (PUBLIC_ROUTES.includes(pathname)) {
     if (sessionCookie) {
       return NextResponse.redirect(new URL('/home', request.url))
@@ -14,12 +13,10 @@ export function middleware(request) {
     return NextResponse.next()
   }
 
-  // Sin sesión
   if (!sessionCookie) {
     return NextResponse.redirect(new URL('/login', request.url))
   }
 
-  // Verificar permisos por ruta
   try {
     const session = JSON.parse(
       Buffer.from(sessionCookie.value, 'base64').toString()
