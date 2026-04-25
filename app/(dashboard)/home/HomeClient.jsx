@@ -23,7 +23,7 @@ export default function HomeClient({ session, actividades, guardias }) {
     <div className="min-h-screen bg-[#020810] flex flex-col">
 
       {/* Header */}
-      <div className="bg-[#841616] px-5 py-4 flex items-center gap-3 shadow-lg">
+     <div className="bg-[#841616] px-5 py-4 flex items-center gap-3 shadow-lg lg:hidden">
         <div className="flex-1">
           <div className="text-white font-bold text-base leading-tight">
             {session.org_nombre}
@@ -97,6 +97,13 @@ export default function HomeClient({ session, actividades, guardias }) {
                 color="blue" onClick={() => router.push('/admin/masivo')} />
                 <ActionButton icon="📁" title="Registros" sub="Ver, editar y exportar"
   color="green" onClick={() => router.push('/admin/registros')} />
+  <button
+  onClick={() => router.push('/perfil')}
+  className="bg-white/10 hover:bg-white/20 border border-white/20
+             text-white text-xs font-semibold px-3 py-2 rounded-lg"
+>
+  👤
+</button>
             </div>
             {actividades?.length > 0 && (
               <>

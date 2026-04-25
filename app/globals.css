@@ -7,9 +7,7 @@
   -webkit-tap-highlight-color: transparent;
 }
 
-html {
-  scroll-behavior: smooth;
-}
+html { scroll-behavior: smooth; }
 
 body {
   -webkit-font-smoothing: antialiased;
@@ -18,66 +16,8 @@ body {
   min-height: 100dvh;
 }
 
-/* Scrollbar */
 ::-webkit-scrollbar { width: 4px; height: 4px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: #2a3e5c; border-radius: 4px; }
 
-/* Select oscuro */
 select option { background: #0a1830; color: white; }
-
-/* Layout responsive */
-.app-shell {
-  display: flex;
-  min-height: 100vh;
-  min-height: 100dvh;
-  background: #020810;
-}
-
-/* Desktop: sidebar fijo */
-@media (min-width: 1024px) {
-  .app-shell { flex-direction: row; }
-  .app-sidebar {
-    width: 260px;
-    flex-shrink: 0;
-    height: 100vh;
-    position: sticky;
-    top: 0;
-    overflow-y: auto;
-  }
-  .app-main { flex: 1; overflow-y: auto; }
-}
-
-/* Mobile/Tablet */
-@media (max-width: 1023px) {
-  .app-shell { flex-direction: column; }
-  .app-sidebar { display: none; }
-  .app-main { flex: 1; }
-}
-
-/* Grid de cards responsive */
-.cards-grid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 1rem;
-}
-@media (min-width: 640px) {
-  .cards-grid { grid-template-columns: repeat(2, 1fr); }
-}
-@media (min-width: 1024px) {
-  .cards-grid { grid-template-columns: repeat(3, 1fr); }
-}
-@media (min-width: 1280px) {
-  .cards-grid { grid-template-columns: repeat(4, 1fr); }
-}
-
-/* Contenedor de contenido */
-.content-container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 1.5rem;
-  width: 100%;
-}
-@media (max-width: 640px) {
-  .content-container { padding: 1rem; }
-}

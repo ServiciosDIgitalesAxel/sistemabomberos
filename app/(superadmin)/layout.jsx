@@ -1,3 +1,5 @@
+import DashboardShell from '@/components/DashboardShell'
+
 export default function SuperAdminLayout({ children }) {
-  return <>{children}</>
+  return <DashboardShell>{children}</DashboardShell>
 }

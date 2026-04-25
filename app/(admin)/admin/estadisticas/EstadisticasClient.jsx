@@ -58,7 +58,7 @@ export default function EstadisticasClient({
     <div className="min-h-screen bg-[#020810] flex flex-col">
 
       {/* Header */}
-      <div className="bg-[#841616] px-5 py-4 flex items-center gap-3">
+      <div className="bg-[#841616] px-5 py-4 flex items-center gap-3 lg:hidden">
         <button onClick={() => router.push('/home')}
                 className="bg-white/10 hover:bg-white/20 border border-white/20
                            text-white text-xs font-semibold px-3 py-2 rounded-lg">
