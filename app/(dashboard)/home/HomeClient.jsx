@@ -156,6 +156,47 @@ export default function HomeClient({ session, actividades, guardias, registrados
                 No hay actividades configuradas todavía
               </div>
             )}
+            {/* Historial reciente */}
+{historial?.length > 0 && (
+  <div className="flex flex-col gap-3">
+    <div className="flex items-center justify-between">
+      <SectionTitle title="Últimos registros" />
+      <button onClick={() => router.push('/mis-estadisticas')}
+              className="text-white/40 hover:text-white/70 text-xs
+                         transition-all flex-shrink-0">
+        Ver todo →
+      </button>
+    </div>
+    <div className="flex flex-col gap-2">
+      {historial.slice(0, 5).map(r => (
+        <div key={r.id}
+             className="bg-[#0a1830] border border-white/10 rounded-xl
+                        px-4 py-3 flex items-center gap-3">
+          <span className="text-lg flex-shrink-0">
+            {r.activity_types?.icono || '📋'}
+          </span>
+          <div className="flex-1 min-w-0">
+            <div className="text-white/80 text-sm font-medium truncate">
+              {r.activity_types?.nombre || 'Actividad'}
+            </div>
+            <div className="text-white/40 text-xs mt-0.5">
+              {r.fecha} · {r.hora_ingreso?.substring(0, 5)}
+            </div>
+          </div>
+          <span className={`text-xs font-bold px-2 py-0.5 rounded-full flex-shrink-0 ${
+            r.estado === 'Presente'
+              ? 'bg-green-900/40 text-green-400'
+              : r.estado === 'Ausente Justificado'
+              ? 'bg-red-900/40 text-red-400'
+              : 'bg-yellow-900/40 text-yellow-400'
+          }`}>
+            {r.estado}
+          </span>
+        </div>
+      ))}
+    </div>
+  </div>
+)}
           </div>
         )}
 

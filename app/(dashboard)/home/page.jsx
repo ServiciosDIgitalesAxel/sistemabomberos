@@ -19,7 +19,8 @@ export default async function HomePage() {
   const [
     { data: actividades },
     { data: registrosHoy },
-    { data: userGuards }
+    { data: userGuards },
+    { data: historial }
   ] = await Promise.all([
     supabase
       .from('activity_types')
@@ -35,7 +36,17 @@ export default async function HomePage() {
     supabase
       .from('user_guards')
       .select('guard_id, guards(id, nombre)')
+      .eq('user_id', session.id),
+    supabase
+      .from('attendance_records')
+      .select(`
+        id, estado, fecha, hora_ingreso,
+        activity_types(id, nombre, icono, color)
+      `)
       .eq('user_id', session.id)
+      .order('fecha', { ascending: false })
+      .order('hora_ingreso', { ascending: false })
+      .limit(8)
   ])
 
   const registradosHoy = {}
@@ -52,6 +63,7 @@ export default async function HomePage() {
       actividades={actividades || []}
       guardias={userGuards?.map(ug => ug.guards).filter(Boolean) || []}
       registradosHoy={registradosHoy}
+      historial={historial || []}
     />
   )
 }

@@ -21,7 +21,8 @@ export async function GET() {
   const [
     { data: actividades },
     { data: registrosHoy },
-    { data: userGuards }
+    { data: userGuards },
+    { data: historial }
   ] = await Promise.all([
     supabase
       .from('activity_types')
@@ -37,22 +38,31 @@ export async function GET() {
     supabase
       .from('user_guards')
       .select('guard_id, guards(id, nombre)')
+      .eq('user_id', session.id),
+    supabase
+      .from('attendance_records')
+      .select(`
+        id, estado, fecha, hora_ingreso,
+        activity_types(id, nombre, icono, color)
+      `)
       .eq('user_id', session.id)
+      .order('fecha', { ascending: false })
+      .order('hora_ingreso', { ascending: false })
+      .limit(8)
   ])
 
-  // Mapear qué actividades ya registró hoy
   const registradosHoy = {}
   ;(registrosHoy || []).forEach(r => {
     registradosHoy[r.activity_type_id] = {
-      estado:      r.estado,
-      hora:        r.hora_ingreso?.substring(0, 5),
-      registro_id: r.id
+      estado: r.estado,
+      hora:   r.hora_ingreso?.substring(0, 5)
     }
   })
 
   return NextResponse.json({
     actividades:    actividades || [],
     registradosHoy,
-    guardias:       userGuards?.map(ug => ug.guards).filter(Boolean) || []
+    guardias:       userGuards?.map(ug => ug.guards).filter(Boolean) || [],
+    historial:      historial || []
   })
 }
