@@ -1,17 +1,19 @@
-import { cookies } from 'next/headers'
-import { redirect } from 'next/navigation'
+import { NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
-import HomeClient from './HomeClient'
+import { cookies } from 'next/headers'
 
-export default async function HomePage() {
+async function getSession() {
   const cookieStore = await cookies()
   const sessionCookie = cookieStore.get('bv_session')
-  if (!sessionCookie) redirect('/login')
-
-  let session
+  if (!sessionCookie) return null
   try {
-    session = JSON.parse(Buffer.from(sessionCookie.value, 'base64').toString())
-  } catch { redirect('/login') }
+    return JSON.parse(Buffer.from(sessionCookie.value, 'base64').toString())
+  } catch { return null }
+}
+
+export async function GET() {
+  const session = await getSession()
+  if (!session) return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
 
   const supabase = createAdminClient()
   const hoy = new Date().toISOString().split('T')[0]
@@ -38,20 +40,19 @@ export default async function HomePage() {
       .eq('user_id', session.id)
   ])
 
+  // Mapear qué actividades ya registró hoy
   const registradosHoy = {}
   ;(registrosHoy || []).forEach(r => {
     registradosHoy[r.activity_type_id] = {
-      estado: r.estado,
-      hora:   r.hora_ingreso?.substring(0, 5)
+      estado:      r.estado,
+      hora:        r.hora_ingreso?.substring(0, 5),
+      registro_id: r.id
     }
   })
 
-  return (
-    <HomeClient
-      session={session}
-      actividades={actividades || []}
-      guardias={userGuards?.map(ug => ug.guards).filter(Boolean) || []}
-      registradosHoy={registradosHoy}
-    />
-  )
+  return NextResponse.json({
+    actividades:    actividades || [],
+    registradosHoy,
+    guardias:       userGuards?.map(ug => ug.guards).filter(Boolean) || []
+  })
 }
