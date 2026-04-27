@@ -15,24 +15,16 @@ export default function LoginPage() {
     e.preventDefault()
     setLoading(true)
     setError('')
-
     try {
       const res = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username, password })
       })
-
       const data = await res.json()
-
-      if (!res.ok) {
-        setError(data.error || 'Error al iniciar sesión')
-        return
-      }
-
+      if (!res.ok) { setError(data.error || 'Error al iniciar sesión'); return }
       router.push('/home')
       router.refresh()
-
     } catch {
       setError('Error de conexión. Intentá de nuevo.')
     } finally {
@@ -41,33 +33,35 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#020810] flex flex-col">
-      
+    <div className="min-h-screen min-h-dvh bg-gray-50 flex flex-col">
+
       {/* Header */}
-      <div className="bg-[#841616] px-5 py-6 text-center shadow-lg">
-        <div className="text-white font-bold text-lg leading-tight">
-          Sistema de Asistencias
-        </div>
-        <div className="text-white/70 text-sm mt-1">
+      <div className="bg-red-700 px-5 py-5 text-center">
+        <img src="https://i.imgur.com/OXrrXXt.png" alt="Logo"
+             className="w-14 h-14 object-contain mx-auto mb-2" />
+        <div className="text-white font-semibold text-base">
           Bomberos Voluntarios
+        </div>
+        <div className="text-red-200 text-sm mt-0.5">
+          Sistema de Asistencias
         </div>
       </div>
 
       {/* Form */}
-      <div className="flex-1 flex flex-col justify-center px-6 py-8 max-w-md mx-auto w-full">
-        
-        <h1 className="text-white text-3xl font-bold text-center mb-2">
+      <div className="flex-1 flex flex-col justify-center px-6 py-8
+                      max-w-sm mx-auto w-full">
+
+        <h1 className="text-gray-900 text-2xl font-bold mb-1">
           Iniciá sesión
         </h1>
-        <p className="text-white/50 text-center text-sm mb-8">
+        <p className="text-gray-500 text-sm mb-6">
           Ingresá tus credenciales para continuar
         </p>
 
-        <form onSubmit={handleLogin} className="flex flex-col gap-5">
-          
-          {/* Usuario */}
-          <div className="flex flex-col gap-2">
-            <label className="text-white/60 text-xs font-bold uppercase tracking-widest">
+        <form onSubmit={handleLogin} className="flex flex-col gap-4">
+
+          <div className="flex flex-col gap-1.5">
+            <label className="text-gray-700 text-sm font-medium">
               Usuario
             </label>
             <input
@@ -76,16 +70,15 @@ export default function LoginPage() {
               onChange={e => setUsername(e.target.value)}
               placeholder="Tu nombre de usuario"
               required
-              className="bg-white/8 border border-white/10 rounded-xl px-4 py-3 
-                         text-white placeholder-white/30 text-base
-                         focus:outline-none focus:border-yellow-400/50 
-                         focus:bg-white/12 transition-all"
+              className="border border-gray-300 rounded-lg px-3 py-2.5
+                         text-gray-900 placeholder-gray-400 text-sm bg-white
+                         focus:outline-none focus:border-gray-500 focus:ring-1
+                         focus:ring-gray-500"
             />
           </div>
 
-          {/* Contraseña */}
-          <div className="flex flex-col gap-2">
-            <label className="text-white/60 text-xs font-bold uppercase tracking-widest">
+          <div className="flex flex-col gap-1.5">
+            <label className="text-gray-700 text-sm font-medium">
               Contraseña
             </label>
             <div className="relative">
@@ -95,58 +88,46 @@ export default function LoginPage() {
                 onChange={e => setPassword(e.target.value)}
                 placeholder="Tu contraseña"
                 required
-                className="w-full bg-white/8 border border-white/10 rounded-xl px-4 py-3 
-                           pr-12 text-white placeholder-white/30 text-base
-                           focus:outline-none focus:border-yellow-400/50 
-                           focus:bg-white/12 transition-all"
+                className="w-full border border-gray-300 rounded-lg px-3 py-2.5
+                           pr-10 text-gray-900 placeholder-gray-400 text-sm bg-white
+                           focus:outline-none focus:border-gray-500 focus:ring-1
+                           focus:ring-gray-500"
               />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-4 top-1/2 -translate-y-1/2 
-                           text-white/40 hover:text-white/80 transition-colors"
-              >
+              <button type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2
+                                 text-gray-400 hover:text-gray-600 text-sm">
                 {showPassword ? '🙈' : '👁️'}
               </button>
             </div>
           </div>
 
-          {/* Error */}
           {error && (
-            <div className="bg-red-900/30 border border-red-500/30 rounded-xl 
-                            px-4 py-3 text-red-300 text-sm text-center">
+            <div className="bg-red-50 border border-red-200 rounded-lg
+                            px-3 py-2.5 text-red-700 text-sm">
               {error}
             </div>
           )}
 
-          {/* Botón */}
-          <button
-            type="submit"
-            disabled={loading}
-            className="bg-[#b01e1e] hover:bg-[#d42828] disabled:opacity-50 
-                       disabled:cursor-not-allowed text-white font-bold text-base
-                       py-4 rounded-xl transition-all mt-2
-                       shadow-lg shadow-red-900/30"
-          >
-            {loading ? '⏳ Verificando...' : 'Ingresar al sistema'}
+          <button type="submit" disabled={loading}
+                  className="bg-red-700 hover:bg-red-800 disabled:opacity-50
+                             text-white font-semibold text-sm py-3 rounded-lg
+                             with-transition mt-1">
+            {loading ? 'Verificando...' : 'Ingresar al sistema'}
           </button>
 
         </form>
 
-        {/* Status */}
-        <div className="flex items-center gap-2 mt-6 bg-white/4 border border-white/6 
-                        rounded-xl px-4 py-3 justify-center">
-          <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
-          <span className="text-white/50 text-xs">Sistema operativo · Acceso seguro</span>
+        <div className="flex items-center gap-2 mt-6 text-center justify-center">
+          <div className="w-1.5 h-1.5 rounded-full bg-green-500" />
+          <span className="text-gray-400 text-xs">Sistema operativo</span>
         </div>
 
       </div>
 
-      {/* Footer */}
-      <div className="text-center pb-6 text-white/20 text-xs">
-        Sistema de Asistencias · Bomberos Voluntarios
+      <div className="text-center pb-6 text-gray-400 text-xs">
+        Bomberos Voluntarios · Sistema de Asistencias
       </div>
-
     </div>
   )
 }

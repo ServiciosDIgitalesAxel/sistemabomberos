@@ -11,33 +11,45 @@ async function getSession() {
   } catch { return null }
 }
 
-// GET — actividades disponibles para el usuario
-export async function GET() {
+export async function GET(request) {
   const session = await getSession()
   if (!session) return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
 
+  const { searchParams } = new URL(request.url)
+  const actividadId = searchParams.get('actividadId')
+  if (!actividadId) return NextResponse.json({ error: 'actividadId requerido' }, { status: 400 })
+
   const supabase = createAdminClient()
+  const hoy = new Date().toISOString().split('T')[0]
 
-  const { data: actividades } = await supabase
-    .from('activity_types')
+  // Buscar evento en curso (ingreso sin egreso)
+  const { data: enCurso } = await supabase
+    .from('attendance_records')
     .select('*')
-    .eq('org_id', session.org_id)
-    .eq('activo', true)
-    .order('orden')
-
-  // Guardias del usuario
-  const { data: userGuards } = await supabase
-    .from('user_guards')
-    .select('guard_id, guards(id, nombre)')
     .eq('user_id', session.id)
+    .eq('activity_type_id', actividadId)
+    .is('hora_egreso', null)
+    .not('hora_ingreso', 'is', null)
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .maybeSingle()
+
+  // Buscar registro de hoy completo
+  const { data: registroHoy } = await supabase
+    .from('attendance_records')
+    .select('*')
+    .eq('user_id', session.id)
+    .eq('activity_type_id', actividadId)
+    .eq('fecha', hoy)
+    .not('hora_egreso', 'is', null)
+    .maybeSingle()
 
   return NextResponse.json({
-    actividades: actividades || [],
-    guardias: userGuards?.map(ug => ug.guards).filter(Boolean) || []
+    enCurso:     enCurso || null,
+    registroHoy: registroHoy || null
   })
 }
 
-// POST — registrar asistencia
 export async function POST(request) {
   const session = await getSession()
   if (!session) return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
@@ -49,8 +61,6 @@ export async function POST(request) {
     observaciones,
     fecha,
     hora_ingreso,
-    hora_egreso,
-    tiempo_total
   } = await request.json()
 
   if (!activity_type_id || !estado) {
@@ -59,7 +69,6 @@ export async function POST(request) {
 
   const supabase = createAdminClient()
 
-  // Verificar que la actividad pertenece al cuartel
   const { data: actividad } = await supabase
     .from('activity_types')
     .select('id, tipo_base')
@@ -82,8 +91,6 @@ export async function POST(request) {
       observaciones:    observaciones || '',
       fecha:            fecha || new Date().toISOString().split('T')[0],
       hora_ingreso:     hora_ingreso || null,
-      hora_egreso:      hora_egreso || null,
-      tiempo_total:     tiempo_total || null,
       registrado_por:   session.id
     })
     .select()
@@ -91,4 +98,37 @@ export async function POST(request) {
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
   return NextResponse.json({ success: true, registro: data })
+}
+
+export async function PATCH(request) {
+  const session = await getSession()
+  if (!session) return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
+
+  const { id, hora_egreso, tiempo_total } = await request.json()
+  if (!id) return NextResponse.json({ error: 'ID requerido' }, { status: 400 })
+
+  const supabase = createAdminClient()
+
+  // Verificar que el registro pertenece al usuario
+  const { data: registro } = await supabase
+    .from('attendance_records')
+    .select('id, user_id')
+    .eq('id', id)
+    .single()
+
+  if (!registro || registro.user_id !== session.id) {
+    return NextResponse.json({ error: 'Registro no encontrado' }, { status: 404 })
+  }
+
+  const { error } = await supabase
+    .from('attendance_records')
+    .update({
+      hora_egreso,
+      tiempo_total,
+      estado: 'Presente'
+    })
+    .eq('id', id)
+
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  return NextResponse.json({ success: true })
 }
