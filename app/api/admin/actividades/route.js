@@ -42,6 +42,9 @@ export async function POST(request) {
   const { data, error } = await supabase
     .from('activity_types')
     .insert({
+      hora_inicio: hora_inicio || null,
+hora_fin:  hora_fin    || null,
+dias_semana:  dias_semana || [0,1,2,3,4,5,6],
       org_id: session.org_id,
       nombre,
       icono: icono || '📋',
@@ -69,6 +72,9 @@ export async function PATCH(request) {
 
   const supabase = createAdminClient()
   const updates = {}
+  if (hora_inicio !== undefined) updates.hora_inicio = hora_inicio || null
+if (hora_fin    !== undefined) updates.hora_fin    = hora_fin    || null
+if (dias_semana !== undefined) updates.dias_semana = dias_semana
   if (nombre)  updates.nombre  = nombre
   if (icono)   updates.icono   = icono
   if (color)   updates.color   = color
@@ -84,4 +90,22 @@ export async function PATCH(request) {
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
   return NextResponse.json({ success: true })
+}
+// Si se configuró horario, notificar a los usuarios del cuartel
+if (hora_inicio && hora_fin) {
+  try {
+    const { enviarNotificacion } = await import('@/lib/push')
+    const { data: actInfo } = await supabase
+      .from('activity_types')
+      .select('nombre')
+      .eq('id', id)
+      .single()
+
+    await enviarNotificacion({
+      orgId:  session.org_id,
+      titulo: '🔔 Registro habilitado',
+      cuerpo: `Ya está disponible el registro de "${actInfo?.nombre}". Horario: ${hora_inicio.substring(0,5)} a ${hora_fin.substring(0,5)}.`,
+      url:    '/home'
+    })
+  } catch {}
 }

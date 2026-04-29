@@ -14,9 +14,6 @@ async function getSession() {
 export async function GET(request) {
   const session = await getSession()
   if (!session) return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
-  if (!['admin', 'superadmin', 'jefe'].includes(session.rol)) {
-    return NextResponse.json({ error: 'Sin permisos' }, { status: 403 })
-  }
 
   const { searchParams } = new URL(request.url)
   const actividadId = searchParams.get('actividadId')
@@ -29,9 +26,18 @@ export async function GET(request) {
     return NextResponse.json({ error: 'Faltan parámetros' }, { status: 400 })
   }
 
+  // Bombero solo puede ver sus propios datos
+  if (session.rol === 'bombero') {
+    if (!usuarioId || usuarioId !== session.id) {
+      return NextResponse.json({ error: 'Sin permisos' }, { status: 403 })
+    }
+  }
+
+  // Jefe y admin pueden ver todo su cuartel
+  // Superadmin puede ver todo
   const supabase = createAdminClient()
 
-    let query = supabase
+  let q = supabase
     .from('attendance_records')
     .select(`
       id, estado, observaciones, fecha, hora_ingreso, hora_egreso, tiempo_total,
@@ -43,15 +49,14 @@ export async function GET(request) {
     .gte('fecha', desde)
     .lte('fecha', hasta)
     .order('fecha', { ascending: false })
+    .order('hora_ingreso', { ascending: false })
 
-  if (guardiaId) query = query.eq('guard_id', guardiaId)
-  if (usuarioId) query = query.eq('user_id', usuarioId)
+  if (guardiaId) q = q.eq('guard_id', guardiaId)
+  if (usuarioId) q = q.eq('user_id', usuarioId)
 
-  const { data: records, error } = await query
-
+  const { data: records, error } = await q
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 
-  // Procesar registros
   const registros = (records || []).map(r => ({
     id:            r.id,
     nombre:        r.user?.nombre,
@@ -65,25 +70,20 @@ export async function GET(request) {
     tiempo_total:  r.tiempo_total,
     guardia:       r.guards?.nombre,
   }))
-  // Resumen general
-  const total = registros.length
+
+  const total      = registros.length
   const diasUnicos = new Set(registros.map(r => r.fecha)).size
-  const porEstado = {}
+  const porEstado  = {}
   registros.forEach(r => {
     porEstado[r.estado] = (porEstado[r.estado] || 0) + 1
   })
 
-  // Por bombero
   const bomberoMap = {}
   registros.forEach(r => {
     if (!bomberoMap[r.userId]) {
       bomberoMap[r.userId] = {
-        userId:    r.userId,
-        nombre:    r.nombre,
-        jerarquia: r.jerarquia,
-        total:     0,
-        presentes: 0,
-        porEstado: {}
+        userId: r.userId, nombre: r.nombre, jerarquia: r.jerarquia,
+        total: 0, presentes: 0, porEstado: {}
       }
     }
     const b = bomberoMap[r.userId]
@@ -96,7 +96,7 @@ export async function GET(request) {
     .sort((a, b) => b.presentes - a.presentes)
 
   return NextResponse.json({
-    resumen:   { total, diasUnicos, porEstado },
+    resumen: { total, diasUnicos, porEstado },
     porBombero,
     registros,
   })

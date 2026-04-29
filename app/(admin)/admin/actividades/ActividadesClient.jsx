@@ -20,7 +20,8 @@ const ESTADOS_DEFECTO = {
 
 const EMPTY_FORM = {
   nombre: '', icono: '📋', color: '#1a3d7a',
-  tipo_base: 'actividad', estados: ['Presente', 'Ausente Justificado'], orden: 0
+  tipo_base: 'actividad', estados: ['Presente', 'Ausente Justificado'], orden: 0,
+  hora_inicio: '', hora_fin: '', dias_semana: [0,1,2,3,4,5,6]
 }
 
 export default function ActividadesClient({ actividades: inicial, session }) {
@@ -184,7 +185,61 @@ export default function ActividadesClient({ actividades: inicial, session }) {
                           className="text-white/30 hover:text-red-400 ml-1">✕</button>
                 </span>
               ))}
-            </div>
+              {/* Restricción de horario */}
+<div className="flex flex-col gap-2 border-t border-white/6 pt-4">
+  <label className="text-white/40 text-xs font-semibold uppercase tracking-wider">
+    Restricción de horario (opcional)
+  </label>
+  <p className="text-white/25 text-xs">
+    Si configurás horario, solo se podrá registrar en ese rango.
+    Dejalo vacío para permitir siempre.
+  </p>
+  <div className="grid grid-cols-2 gap-3">
+    <div className="flex flex-col gap-1.5">
+      <label className="text-white/40 text-xs">Hora inicio</label>
+      <input type="time" value={form.hora_inicio || ''}
+             onChange={e => setForm({ ...form, hora_inicio: e.target.value })}
+             className="bg-[#0d1f38] border border-white/10 rounded-lg px-3 py-2.5
+                        text-white text-sm focus:outline-none focus:border-white/25" />
+    </div>
+    <div className="flex flex-col gap-1.5">
+      <label className="text-white/40 text-xs">Hora fin</label>
+      <input type="time" value={form.hora_fin || ''}
+             onChange={e => setForm({ ...form, hora_fin: e.target.value })}
+             className="bg-[#0d1f38] border border-white/10 rounded-lg px-3 py-2.5
+                        text-white text-sm focus:outline-none focus:border-white/25" />
+    </div>
+  </div>
+  <div className="flex flex-col gap-1.5">
+    <label className="text-white/40 text-xs">Días habilitados</label>
+    <div className="flex gap-2 flex-wrap">
+      {['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'].map((dia, i) => (
+        <label key={i}
+               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg
+                           border cursor-pointer text-xs ${
+                 (form.dias_semana || [0,1,2,3,4,5,6]).includes(i)
+                   ? 'border-white/20 bg-white/8 text-white'
+                   : 'border-white/6 bg-transparent text-white/30'
+               }`}>
+          <input type="checkbox"
+                 checked={(form.dias_semana || [0,1,2,3,4,5,6]).includes(i)}
+                 onChange={e => {
+                   const dias = form.dias_semana || [0,1,2,3,4,5,6]
+                   setForm({
+                     ...form,
+                     dias_semana: e.target.checked
+                       ? [...dias, i].sort()
+                       : dias.filter(d => d !== i)
+                   })
+                 }}
+                 className="hidden" />
+          {dia}
+        </label>
+      ))}
+    </div>
+  </div>
+</div>
+</div>
             <div className="flex gap-2">
               <input type="text" value={nuevoEstado}
                      onChange={e => setNuevoEstado(e.target.value)}

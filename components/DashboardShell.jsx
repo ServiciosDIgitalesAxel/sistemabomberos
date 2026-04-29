@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import { useTheme } from '@/components/ThemeProvider'
+import PushManager from '@/components/PushManager'
 
 export default function DashboardShell({ children, session }) {
   const router   = useRouter()
@@ -181,6 +182,7 @@ export default function DashboardShell({ children, session }) {
             </div>
             <SidebarContent />
           </aside>
+          <PushManager />
         </div>
       )}
 

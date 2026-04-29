@@ -65,6 +65,40 @@ export async function POST(request) {
 
   if (!activity_type_id || !estado) {
     return NextResponse.json({ error: 'Faltan campos obligatorios' }, { status: 400 })
+    // Notificación de éxito al bombero
+try {
+  const { enviarNotificacion } = await import('@/lib/push')
+  
+  const totalRegistros = await supabase
+    .from('attendance_records')
+    .select('id', { count: 'exact', head: true })
+    .eq('user_id', session.id)
+
+  const total = totalRegistros.count || 0
+  
+  let mensaje = `✅ ${actividad.nombre} · ${estado}`
+  let titulo  = 'Asistencia registrada'
+
+  // Mensajes especiales por hitos
+  if (total === 50) {
+    titulo  = '¡50 registros! 🎉'
+    mensaje = '¡Felicitaciones por tu predisposición! Gracias por la confianza.'
+  } else if (total === 100) {
+    titulo  = '¡100 registros! 🏆'
+    mensaje = '¡Increíble dedicación! Sos un ejemplo para el cuartel.'
+  } else if (total === 10) {
+    titulo  = '¡10 registros! 🌟'
+    mensaje = 'Vas muy bien, seguí así.'
+  }
+
+  await enviarNotificacion({
+    orgId:   session.org_id,
+    userIds: [session.id],
+    titulo,
+    cuerpo:  mensaje,
+    url:     '/home'
+  })
+} catch {}
   }
 
   const supabase = createAdminClient()

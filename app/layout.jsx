@@ -6,7 +6,7 @@ const inter = Inter({ subsets: ['latin'] })
 
 export const metadata = {
   title: 'Sistema Bomberos',
-  description: 'Sistema de asistencias para bomberos voluntarios',
+  description: 'Sistema de gestión de asistencias para Bomberos Voluntarios',
   manifest: '/manifest.json',
   appleWebApp: {
     capable: true,
@@ -20,7 +20,7 @@ export const metadata = {
 }
 
 export const viewport = {
-  themeColor:   '#b01e1e',
+  themeColor:   '#b91c1c',
   width:        'device-width',
   initialScale: 1,
   maximumScale: 1,
@@ -34,7 +34,6 @@ export default function RootLayout({ children }) {
         <link rel="apple-touch-icon" href="/icons/icon-180x180.png" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-        {/* Script inline para evitar flash al cargar */}
         <script dangerouslySetInnerHTML={{
           __html: `
             try {

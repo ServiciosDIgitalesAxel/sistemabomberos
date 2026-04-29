@@ -31,18 +31,20 @@ export default async function AsistenciaPage({ params }) {
     .select('guard_id, guards(id, nombre)')
     .eq('user_id', session.id)
 
-  const hoy = new Date().toISOString().split('T')[0]
+  const guardias = userGuards?.map(ug => ug.guards).filter(Boolean) || []
 
-  // Para eventos: buscar si hay uno en curso
-  let enCurso = null
+  const hoy = new Date().toISOString().split('T')[0]
+  let enCurso    = null
   let registroHoy = null
 
   if (actividad.tipo_base === 'evento') {
+    // Buscar ingreso sin egreso (cualquier fecha)
     const { data: ec } = await supabase
       .from('attendance_records')
       .select('*')
       .eq('user_id', session.id)
       .eq('activity_type_id', actividadId)
+      .eq('org_id', session.org_id)
       .is('hora_egreso', null)
       .not('hora_ingreso', 'is', null)
       .order('created_at', { ascending: false })
@@ -51,11 +53,13 @@ export default async function AsistenciaPage({ params }) {
 
     enCurso = ec || null
   } else {
+    // Para actividades normales: buscar registro de hoy
     const { data: rh } = await supabase
       .from('attendance_records')
       .select('*')
       .eq('user_id', session.id)
       .eq('activity_type_id', actividadId)
+      .eq('org_id', session.org_id)
       .eq('fecha', hoy)
       .maybeSingle()
 
@@ -66,7 +70,7 @@ export default async function AsistenciaPage({ params }) {
     <AsistenciaClient
       session={session}
       actividad={actividad}
-      guardias={userGuards?.map(ug => ug.guards).filter(Boolean) || []}
+      guardias={guardias}
       registroHoy={registroHoy}
       enCurso={enCurso}
     />

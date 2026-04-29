@@ -87,3 +87,20 @@ export async function POST(request) {
     message: `✅ ${nuevos.length} registrado${nuevos.length !== 1 ? 's' : ''}${duplicados > 0 ? ` · ⚠️ ${duplicados} duplicado${duplicados !== 1 ? 's' : ''} omitido${duplicados !== 1 ? 's' : ''}` : ''}`
   })
 }
+// Notificar a los bomberos registrados
+try {
+  const { enviarNotificacion } = await import('@/lib/push')
+  const { data: actividadInfo } = await supabase
+    .from('activity_types')
+    .select('nombre')
+    .eq('id', activity_type_id)
+    .single()
+
+  await enviarNotificacion({
+    orgId:   session.org_id,
+    userIds: nuevos.map(r => r.user_id),
+    titulo:  'Asistencia registrada',
+    cuerpo:  `El ${actividadInfo?.nombre || 'actividad'} del ${fecha} fue registrado por el administrador.`,
+    url:     '/home'
+  })
+} catch {}

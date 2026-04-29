@@ -11,5 +11,9 @@ export default async function DashboardLayout({ children }) {
     }
   } catch {}
 
-  return <DashboardShell session={session}>{children}</DashboardShell>
+  return (
+    <div className="app-dark">
+      <DashboardShell session={session}>{children}</DashboardShell>
+    </div>
+  )
 }
