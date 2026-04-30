@@ -110,12 +110,12 @@ export default function RegistrosClient({ session, actividades }) {
       title="Registros y Exportación"
       subtitle={session.org_nombre}
       actions={registros.length > 0 && (
-        <button onClick={exportarExcel}
-                className="bg-green-800 hover:bg-green-700 text-white text-sm
-                           font-medium px-4 py-2 rounded-lg">
-          📥 Exportar Excel
-        </button>
-      )}
+  <button onClick={exportarExcel}
+          className="w-full lg:w-auto bg-green-800 hover:bg-green-700
+                     text-white text-sm font-semibold px-5 py-2.5 rounded-lg">
+    Exportar Excel
+  </button>
+)}
     >
       {error && <Msg type="error"   text={error} />}
       {msg   && <Msg type="success" text={msg}   />}

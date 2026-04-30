@@ -105,10 +105,10 @@ export default function UsuariosClient({ usuarios: inicial, guardias, session })
     <PageShell
       title="Gestión de Usuarios"
       subtitle={session.org_nombre}
-      actions={
+     actions={
   <button onClick={abrirCrear}
           className="w-full lg:w-auto bg-red-700 hover:bg-red-800
-                     text-white text-sm font-medium px-4 py-2.5 rounded-lg">
+                     text-white text-sm font-semibold px-5 py-2.5 rounded-lg">
     + Nuevo usuario
   </button>
 }

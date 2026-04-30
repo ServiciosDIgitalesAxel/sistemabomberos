@@ -5,69 +5,49 @@ import { useState, useEffect } from 'react'
 function urlBase64ToUint8Array(base64String) {
   const padding = '='.repeat((4 - (base64String.length % 4)) % 4)
   const base64  = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/')
-  const rawData = window.atob(base64)
-  const output  = new Uint8Array(rawData.length)
-  for (let i = 0; i < rawData.length; i++) {
-    output[i] = rawData.charCodeAt(i)
-  }
-  return output
+  const raw     = window.atob(base64)
+  const arr     = new Uint8Array(raw.length)
+  for (let i = 0; i < raw.length; i++) arr[i] = raw.charCodeAt(i)
+  return arr
 }
 
 export default function PushManager() {
-  const [estado,  setEstado]  = useState('idle')
   const [mostrar, setMostrar] = useState(false)
+  const [loading, setLoading] = useState(false)
 
   useEffect(() => {
-    // No soportado
-    if (!('Notification' in window) || !('serviceWorker' in navigator) || !('PushManager' in window)) {
-      return
-    }
+    if (
+      !('Notification' in window) ||
+      !('serviceWorker' in navigator) ||
+      !('PushManager' in window)
+    ) return
 
-    // Ya rechazó antes
     try {
       if (localStorage.getItem('push_rechazado') === '1') return
     } catch {}
 
-    if (Notification.permission === 'granted') {
-      setEstado('activo')
-      return
-    }
+    if (Notification.permission === 'granted') return
+    if (Notification.permission === 'denied') return
 
-    if (Notification.permission === 'denied') {
-      setEstado('denegado')
-      return
-    }
-
-    // Mostrar banner después de 4 segundos
-    const t = setTimeout(() => setMostrar(true), 4000)
+    const t = setTimeout(() => setMostrar(true), 3000)
     return () => clearTimeout(t)
   }, [])
 
-  async function suscribir() {
-    setEstado('pidiendo')
+  async function activar() {
+    setLoading(true)
     try {
-      const permission = await Notification.requestPermission()
-
-      if (permission !== 'granted') {
-        setEstado('denegado')
+      const perm = await Notification.requestPermission()
+      if (perm !== 'granted') {
         setMostrar(false)
         return
       }
 
-      // Esperar a que el SW esté listo
       const reg = await navigator.serviceWorker.ready
-
-      // Verificar soporte de push
-      if (!reg.pushManager) {
-        console.error('PushManager no disponible')
-        setEstado('idle')
-        return
-      }
-
       const vapidKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY
+
       if (!vapidKey) {
-        console.error('VAPID key no configurada')
-        setEstado('idle')
+        console.error('Falta NEXT_PUBLIC_VAPID_PUBLIC_KEY')
+        setMostrar(false)
         return
       }
 
@@ -77,20 +57,23 @@ export default function PushManager() {
       })
 
       const res = await fetch('/api/push/subscribe', {
-        method: 'POST',
+        method:  'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ subscription: sub.toJSON() })
+        body:    JSON.stringify({ subscription: sub.toJSON() })
       })
 
-      if (!res.ok) throw new Error('Error guardando suscripción')
+      if (!res.ok) throw new Error('Error al guardar suscripción')
 
-      setEstado('activo')
       setMostrar(false)
+
+      // Notificación de bienvenida
+      await fetch('/api/push/bienvenida', { method: 'POST' })
 
     } catch (err) {
-      console.error('Error activando push:', err)
-      setEstado('idle')
+      console.error('Push error:', err)
       setMostrar(false)
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -99,34 +82,37 @@ export default function PushManager() {
     try { localStorage.setItem('push_rechazado', '1') } catch {}
   }
 
-  if (!mostrar || estado === 'activo' || estado === 'denegado') return null
+  if (!mostrar) return null
 
   return (
-    <div className="fixed bottom-4 left-4 right-4 lg:left-auto lg:right-6 lg:w-80 z-50">
-      <div className="bg-[#0a1830] border border-white/12 rounded-2xl p-4 shadow-xl">
+    <div className="fixed bottom-4 left-4 right-4 lg:left-auto lg:right-6
+                    lg:w-80 z-50">
+      <div className="bg-[#0a1830] border border-white/12 rounded-2xl p-4
+                      shadow-xl shadow-black/50">
         <div className="flex items-start gap-3 mb-4">
-          <div className="w-8 h-8 rounded-lg bg-red-700/20 border border-red-500/20
-                          flex items-center justify-center flex-shrink-0 mt-0.5">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+          <div className="w-9 h-9 rounded-xl bg-red-700/20 border border-red-500/20
+                          flex items-center justify-center flex-shrink-0">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
                  stroke="#f87171" strokeWidth="2">
               <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
               <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
             </svg>
           </div>
-          <div>
+          <div className="flex-1">
             <div className="text-white font-semibold text-sm">
               Activar notificaciones
             </div>
             <div className="text-white/50 text-xs mt-1 leading-relaxed">
-              Recibí alertas cuando se habilita el registro y novedades del cuartel.
+              Te avisamos cuando se habilita el registro y cuando hay
+              novedades en el cuartel.
             </div>
           </div>
         </div>
         <div className="flex gap-2">
-          <button onClick={suscribir} disabled={estado === 'pidiendo'}
-                  className="flex-1 bg-red-700 hover:bg-red-800 disabled:opacity-50
+          <button onClick={activar} disabled={loading}
+                  className="flex-1 bg-red-700 hover:bg-red-800 disabled:opacity-60
                              text-white font-semibold py-2.5 rounded-xl text-sm">
-            {estado === 'pidiendo' ? 'Activando...' : 'Activar'}
+            {loading ? 'Activando...' : 'Activar'}
           </button>
           <button onClick={rechazar}
                   className="flex-1 bg-white/6 hover:bg-white/10 border border-white/10

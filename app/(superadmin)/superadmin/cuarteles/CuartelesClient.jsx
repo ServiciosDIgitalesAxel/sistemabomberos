@@ -96,12 +96,14 @@ export default function CuartelesClient({ cuarteles: inicial, session }) {
         )}
 
         {!showForm && (
-          <button onClick={() => { setShowForm(true); setSuccess('') }}
-                  className="w-full lg:w-auto bg-red-700 hover:bg-red-800
-                     text-white text-sm font-medium px-4 py-2.5 rounded-lg">
-            + Crear Nuevo Cuartel
-          </button>
-        )}
+  <button
+    onClick={() => { setShowForm(true); setSuccess('') }}
+    className="w-full bg-red-700 hover:bg-red-800 text-white
+               font-semibold py-3.5 rounded-xl text-sm"
+  >
+    + Crear Nuevo Cuartel
+  </button>
+)}
 
         {showForm && (
           <form onSubmit={handleCrear}

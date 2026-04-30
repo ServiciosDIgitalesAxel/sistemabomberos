@@ -35,16 +35,12 @@ export default function RootLayout({ children }) {
         <link rel="apple-touch-icon" href="/icons/icon-180x180.png" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-        <script dangerouslySetInnerHTML={{
-          __html: `
-            try {
-              const theme = localStorage.getItem('theme');
-              if (theme === 'light') {
-                document.documentElement.classList.add('light');
-              }
-            } catch(e) {}
-          `
-        }} />
+        <script dangerouslySetInnerHTML={{__html: `
+          try {
+            if (localStorage.getItem('theme') === 'light')
+              document.documentElement.classList.add('light')
+          } catch(e) {}
+        `}} />
       </head>
       <body className={inter.className}>
         <ThemeProvider>

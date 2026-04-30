@@ -101,8 +101,8 @@ export default function ActividadesClient({ actividades: inicial, session }) {
       actions={
   <button onClick={abrirCrear}
           className="w-full lg:w-auto bg-red-700 hover:bg-red-800
-                     text-white text-sm font-medium px-4 py-2.5 rounded-lg">
-    + Nuevo usuario
+                     text-white text-sm font-semibold px-5 py-2.5 rounded-lg">
+    + Nueva actividad
   </button>
 }
     >
