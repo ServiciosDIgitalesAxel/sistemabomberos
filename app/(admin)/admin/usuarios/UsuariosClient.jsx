@@ -106,12 +106,12 @@ export default function UsuariosClient({ usuarios: inicial, guardias, session })
       title="Gestión de Usuarios"
       subtitle={session.org_nombre}
       actions={
-        <button onClick={abrirCrear}
-                className="bg-red-700 hover:bg-red-800 text-white text-sm
-                           font-medium px-4 py-2 rounded-lg">
-          + Nuevo usuario
-        </button>
-      }
+  <button onClick={abrirCrear}
+          className="w-full lg:w-auto bg-red-700 hover:bg-red-800
+                     text-white text-sm font-medium px-4 py-2.5 rounded-lg">
+    + Nuevo usuario
+  </button>
+}
     >
       {error && <Msg type="error" text={error} />}
       {success && <Msg type="success" text={success} />}

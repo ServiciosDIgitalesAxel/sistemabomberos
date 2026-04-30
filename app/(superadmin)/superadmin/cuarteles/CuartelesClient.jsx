@@ -97,8 +97,8 @@ export default function CuartelesClient({ cuarteles: inicial, session }) {
 
         {!showForm && (
           <button onClick={() => { setShowForm(true); setSuccess('') }}
-                  className="w-full bg-[#b01e1e] hover:bg-[#d42828] text-white
-                             font-bold py-4 rounded-xl transition-all shadow-lg">
+                  className="w-full lg:w-auto bg-red-700 hover:bg-red-800
+                     text-white text-sm font-medium px-4 py-2.5 rounded-lg">
             + Crear Nuevo Cuartel
           </button>
         )}
